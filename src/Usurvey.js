@@ -1,7 +1,8 @@
-import React, {Component} from 'react';
+import React, {Component, createRef} from 'react';
+import {initializeApp} from 'firebase/app';
+import {getDatabase, ref, set} from 'firebase/database';
+import {v1 as uuidv1} from 'uuid';
 
-var firebase = require('firebase');
-var uuid = require('uuid');
 var config = {
     apiKey: "AIzaSyD9ak8BKp9mjN8LvPgg7fTe9F-xSVZHnxE",
     authDomain: "usurvey-68f21.firebaseapp.com",
@@ -10,15 +11,16 @@ var config = {
     storageBucket: "usurvey-68f21.appspot.com",
     messagingSenderId: "131357746529"
 };
-firebase.initializeApp(config);
 
+const app = initializeApp(config);
+const database = getDatabase(app);
 
 export default class Usurvey extends Component {
     constructor(props) {
         super(props);
 
         this.state = {
-            uid: uuid.v1(),
+            uid: uuidv1(),
             studentName: '',
             answers: {
                 answer1: '',
@@ -27,6 +29,7 @@ export default class Usurvey extends Component {
             },
             isSubmitted: false
         };
+        this.nameInput = createRef();
         this.nameSubmit = this.nameSubmit.bind(this);
         this.answerSubmitted = this.answerSubmitted.bind(this);
         this.questionSubmit = this.questionSubmit.bind(this);
@@ -40,7 +43,7 @@ export default class Usurvey extends Component {
         if (this.state.studentName === '' && this.state.isSubmitted === false) {
             studentName = <div><h1>Student, please let us know your name:</h1>
                 <form onSubmit={this.nameSubmit}>
-                    <input className="namy" type="text" placeholder="Enter your name" ref="name"/>
+                    <input className="namy" type="text" placeholder="Enter your name" ref={this.nameInput}/>
                 </form>
             </div>;
             questions = '';
@@ -97,10 +100,11 @@ export default class Usurvey extends Component {
     }
 
     nameSubmit(event) {
-        var studentName = this.refs.name.value;
+        var studentName = this.nameInput.current.value;
         this.setState({studentName: studentName}, function () {
             console.log(this.state);
         });
+        event.preventDefault();
     }
 
     answerSubmitted(event) {
@@ -117,12 +121,13 @@ export default class Usurvey extends Component {
         })
     }
 
-    questionSubmit() {
+    questionSubmit(event) {
+        event.preventDefault();
         this.setState({isSubmitted: true});
-        firebase.database().ref('uSurvey' + this.state.uid).set({
-                studentName: this.state.studentName,
-                answers: this.state.answers
-            }
-        );
+        const dbRef = ref(database, 'uSurvey' + this.state.uid);
+        set(dbRef, {
+            studentName: this.state.studentName,
+            answers: this.state.answers
+        });
     }
 }
