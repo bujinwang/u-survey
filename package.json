@@ -26,5 +26,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "overrides": {
+    "undici": "^6.21.0",
+    "webpack-dev-server": "^5.0.0",
+    "postcss": "^8.4.31"
   }
 }
